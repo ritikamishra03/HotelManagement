@@ -10,6 +10,9 @@
     <tr>
       <th>Room Number</th>
       <th>Room</th>
+      <% if current_user.admin? || current_user.staff? %>
+        <th>Customer_Name </th>
+      <% end %>
       <th>Check In</th>
       <th>Check Out</th>
       <th>Status</th>
@@ -22,6 +25,9 @@
       <tr>
         <td><%= booking.room.room_number %></td>
         <td><%= booking.room.room_type.name %></td>
+        <% if current_user.admin? || current_user.staff? %>
+          <td><%= booking.user.name %></td>
+        <% end %>
         <td><%= booking.check_in %></td>
         <td><%= booking.check_out %></td>
         <td><%= booking.status %></td>

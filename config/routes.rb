@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   devise_for :users
-  resources :users, only: [:index, :edit, :update,:show]
+  resources :users, only: [:index, :edit, :update,:show,:destroy]
   resources :bookings do
     collection do
       get :check_availability

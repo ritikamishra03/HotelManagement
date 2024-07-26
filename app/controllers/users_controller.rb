@@ -22,6 +22,13 @@ class UsersController < ApplicationController
         render :edit
       end
     end
+
+    def destroy
+      # debugger  
+      @user=User.find(params[:id])
+      @user.destroy
+      redirect_to users_path, notice: 'Booking was successfully destroyed.'
+  end
   
     private
   

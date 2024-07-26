@@ -1,9 +1,9 @@
 FactoryBot.define do
     factory :booking do
-      check_in {'2024-08-27'}
-      check_out{'2024-08-29'}
-      status{'booked'}
-      user_id{1}
-      room_id{1}
+      room
+      user
+      check_in { 1.day.from_now }
+      check_out { 2.days.from_now }
     end
   end
+  

@@ -1,5 +1,8 @@
 class ApplicationController < ActionController::Base
     before_action :authenticate_user!
+    before_action :configure_permitted_parameters, if: :devise_controller?
+
+  
 
     def admin?
         current_user && current_user.admin?
@@ -23,6 +26,14 @@ class ApplicationController < ActionController::Base
 
     def authorize_user
         redirect_to(root_path, alert: 'Access denied!') unless admin? || user?
+    end
+
+    protected
+
+    def configure_permitted_parameters
+        attributes = [:name,:role]
+        devise_parameter_sanitizer.permit(:sign_up, keys: attributes)
+        devise_parameter_sanitizer.permit(:account_update, keys: attributes)
     end
 
 end

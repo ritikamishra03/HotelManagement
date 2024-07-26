@@ -10,14 +10,19 @@
         <a class="nav-link"<%= link_to 'Booking',new_booking_path %></a>
     <% end %>
   </li>
-  <li class="nav-item">
-    <% if signed_in? %>
-        <a class="nav-link "<%= link_to 'Logout',logout_path %></a>
-    <% end %>
+  <li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">Profile</a>
+    <ul class="dropdown-menu">
+      <li>
+        <% if signed_in? %>
+          <a class="nav-link "<%= link_to 'Logout',logout_path %></a>
+        <% end %>
+      </li>
+       <a class="nav-link "<%= link_to 'Profile',user_path(current_user) %></a>
+      </li>
+    </ul>
   </li>
-  <li class="nav-item">
-        <a class="nav-link "<%= link_to 'Profile',user_path(current_user) %></a>
-  </li>
+
   </ul>
   </head>
 

@@ -1,6 +1,7 @@
 FactoryBot.define do
     factory :room_type do
-      name{'room'}
-      rate{100}
+      # Attributes for RoomType
+      rate {100}
+      name {"xyz"}
     end
   end

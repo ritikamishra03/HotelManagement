@@ -1,0 +1,181 @@
+require 'rails_helper'
+
+RSpec.describe BookingsController, type: :controller do
+  let(:admin) { create(:user, admin: true) }
+  let(:customer) { create(:user, customer: true) }
+  let(:staff) { create(:user, staff: true) }
+  let(:room) { create(:room) }
+  let(:room_type) { create(:room_type) }
+  let(:booking) { create(:booking, user: customer, room: room) }
+
+  before do
+    sign_in user
+  end
+
+  describe 'GET #index' do
+    context 'when admin' do
+      let(:user) { admin }
+      it 'returns all bookings' do
+        get :index
+        expect(assigns(:bookings)).to eq(Booking.all)
+      end
+    end
+
+    context 'when customer' do
+      let(:user) { customer }
+      it 'returns only user bookings' do
+        get :index
+        expect(assigns(:bookings)).to eq(customer.bookings)
+      end
+    end
+  end
+
+  describe 'GET #show' do
+    it 'assigns the requested booking to @booking' do
+      get :show, params: { id: booking.id }
+      expect(assigns(:booking)).to eq(booking)
+    end
+  end
+
+  describe 'GET #new' do
+    it 'assigns new booking and loads rooms and room types' do
+      get :new
+      expect(assigns(:booking)).to be_a_new(Booking)
+      expect(assigns(:rooms)).to eq(Room.all)
+      expect(assigns(:room_types)).to eq(RoomType.all)
+    end
+  end
+
+  describe 'POST #create' do
+    context 'with valid attributes' do
+      it 'creates a new booking' do
+        expect {
+          post :create, params: { booking: { room_id: room.id, check_in: 1.day.from_now, check_out: 2.days.from_now, room_type_id: room_type.id } }
+        }.to change(Booking, :count).by(1)
+      end
+
+      it 'redirects to bookings path' do
+        post :create, params: { booking: { room_id: room.id, check_in: 1.day.from_now, check_out: 2.days.from_now, room_type_id: room_type.id } }
+        expect(response).to redirect_to(bookings_path)
+      end
+    end
+
+    context 'with invalid attributes' do
+      it 'does not create a new booking' do
+        expect {
+          post :create, params: { booking: { room_id: nil, check_in: nil, check_out: nil, room_type_id: nil } }
+        }.to_not change(Booking, :count)
+      end
+
+      it 're-renders the new template' do
+        post :create, params: { booking: { room_id: nil, check_in: nil, check_out: nil, room_type_id: nil } }
+        expect(response).to render_template(:new)
+      end
+    end
+  end
+
+  describe 'PATCH #update' do
+    context 'with valid attributes' do
+      it 'updates the booking' do
+        patch :update, params: { id: booking.id, booking: { check_in: 2.days.from_now } }
+        booking.reload
+        expect(booking.check_in).to eq(2.days.from_now.to_date)
+      end
+
+      it 'redirects to bookings path' do
+        patch :update, params: { id: booking.id, booking: { check_in: 2.days.from_now } }
+        expect(response).to redirect_to(bookings_path)
+      end
+    end
+
+    context 'with invalid attributes' do
+      it 'does not update the booking' do
+        patch :update, params: { id: booking.id, booking: { check_in: nil } }
+        booking.reload
+        expect(booking.check_in).to eq(1.day.from_now.to_date)
+      end
+
+      it 're-renders the edit template' do
+        patch :update, params: { id: booking.id, booking: { check_in: nil } }
+        expect(response).to render_template(:edit)
+      end
+    end
+  end
+
+  describe 'DELETE #destroy' do
+    it 'deletes the booking' do
+      booking
+      expect {
+        delete :destroy, params: { id: booking.id }
+      }.to change(Booking, :count).by(-1)
+    end
+
+    it 'redirects to bookings_url' do
+      delete :destroy, params: { id: booking.id }
+      expect(response).to redirect_to(bookings_url)
+    end
+  end
+
+  describe 'POST #check_in' do
+    it 'updates the booking status to checked_in' do
+      post :check_in, params: { id: booking.id }
+      booking.reload
+      expect(booking.status).to eq('checked_in')
+    end
+
+    it 'redirects to bookings path' do
+      post :check_in, params: { id: booking.id }
+      expect(response).to redirect_to(bookings_path)
+    end
+  end
+
+  describe 'POST #check_out' do
+    it 'updates the booking status to checked_out' do
+      post :check_out, params: { id: booking.id }
+      booking.reload
+      expect(booking.status).to eq('checked_out')
+    end
+
+    it 'redirects to bill_booking_path' do
+      post :check_out, params: { id: booking.id }
+      expect(response).to redirect_to(bill_booking_path(booking))
+    end
+  end
+
+  describe 'GET #invoice' do
+    it 'assigns the invoice to @invoice' do
+      get :invoice, params: { id: booking.id }
+      expect(assigns(:invoice)).to eq(booking.invoice)
+    end
+  end
+
+  describe 'PATCH #update_invoice' do
+    let(:invoice) { create(:invoice, booking: booking) }
+
+    context 'with valid attributes' do
+      it 'updates the invoice' do
+        patch :update_invoice, params: { id: invoice.id, invoice: { amount: 100.00 } }
+        invoice.reload
+        expect(invoice.amount).to eq(100.00)
+      end
+
+      it 'redirects to the booking' do
+        patch :update_invoice, params: { id: invoice.id, invoice: { amount: 100.00 } }
+        expect(response).to redirect_to(booking)
+      end
+    end
+
+    context 'with invalid attributes' do
+      it 'does not update the invoice' do
+        patch :update_invoice, params: { id: invoice.id, invoice: { amount: nil } }
+        invoice.reload
+        expect(invoice.amount).not_to be_nil
+      end
+
+      it 're-renders the invoice template' do
+        patch :update_invoice, params: { id: invoice.id, invoice: { amount: nil } }
+        expect(response).to render_template(:invoice)
+      end
+    end
+  end
+end
