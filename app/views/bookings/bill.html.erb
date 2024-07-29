@@ -4,7 +4,7 @@
         <div class="card">
           <div class="card-body p-5">
             <h2>
-              Hey,<%= current_user.name %>
+              Hey,<%= @booking.user.name %>
             </h2>
             <p class="fs-sm">
               This is the receipt for a payment of <strong><%=@booking.total_cost %></strong> of the room you stayed.

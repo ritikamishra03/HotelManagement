@@ -1,4 +1,5 @@
 class Booking < ApplicationRecord
+    before_create :room_availability
     belongs_to :user
     belongs_to :room
     has_one :invoice
@@ -7,14 +8,8 @@ class Booking < ApplicationRecord
     validates :check_in, presence:true
     validates :check_out, presence:true
     validate :check_out_after_check_in
-    before_create :room_availability
 
     after_create :create_invoice
-
-    # def self.avilable_rooms(start_date,end_date)
-    #     booked_rooms = Booking.where("check_in < ? And check_out > ?",end_date,start_date).pluck(:room_id)
-    #     Room.where.not(id:booking_rooms)
-    # end
 
     def duration
         (check_out - check_in).to_i

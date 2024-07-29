@@ -3,8 +3,7 @@ class BookingsController < ApplicationController
     before_action :authorize_user, only: [:new, :create]
     before_action :authorize_booking_owner_or_admin, only: [:edit, :update, :destroy]
     before_action :authorize_staff_or_admin, only: [:check_in, :check_out]
-
-  
+    
     def index
       @bookings = current_user.admin? || current_user.staff? ? Booking.all : current_user.bookings
     end
@@ -21,13 +20,12 @@ class BookingsController < ApplicationController
 
     def create
         @booking = current_user.bookings.new(booking_params)
-        @rooms = Room.all
-        @room_types = RoomType.all
         # @booking.customer=current_user
-        if @booking.save
+        if @booking.save && (current_user.admin? || current_user.staff?)
           redirect_to bookings_path, notice: 'Booking was successfully created.'
+          @booking.room.update(status:"occupied")
         elsif @booking.save && current_user.customer?
-          redirect_to bill_booking_path 
+          redirect_to bill_booking_path(@booking) 
         else
           render :new
         end
@@ -50,6 +48,7 @@ class BookingsController < ApplicationController
     def destroy
         @booking.destroy
         redirect_to bookings_url, notice: 'Booking was successfully destroyed.'
+        @booking.room.update(status:"clean")
     end
     
     def check_availability
@@ -74,20 +73,6 @@ class BookingsController < ApplicationController
         redirect_to @booking, alert: 'Failed to check out guest.'
       end
     end
-
-
-    # def invoice 
-    #   @invoice = @booking.invoice
-    # end 
-    
-    # def update_invoice
-    #   @invoice = Invoice.find(params[:id])
-    #   if @invoice.update(invoice_params) 
-    #     redirect_to @invoice.booking, notice: 'Invoice updated successfully.' 
-    #   else 
-    #     ender :invoice
-    #   end 
-    # end
     
     def bill
     end
@@ -111,7 +96,7 @@ class BookingsController < ApplicationController
     end
     
     def booking_params
-        params.require(:booking).permit(:room_id, :check_in, :check_out,room_type_id)
+        params.require(:booking).permit(:room_id, :check_in, :check_out)
     end
 
     # def calculate_total_amount(booking)
